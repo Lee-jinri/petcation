@@ -79,7 +79,7 @@
 	</select>	
 	
 	<select id="hotelDetail" parameterType="hotel" resultType="hotel">
-		SELECT hotel_no, hotel_name, hotel_info, hotel_address, hotel_tel, hotel_price,hotel_no,
+		SELECT hotel_no, hotel_name, hotel_info, hotel_address, hotel_tel, hotel_price,hotel_no, hotel_thumb,
       	to_char(hotel_date, 'YYYY-MM-DD') as hotel_date
       	from hotel
       	where hotel_no = #{hotel_no}

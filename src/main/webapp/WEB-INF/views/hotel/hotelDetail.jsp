@@ -48,7 +48,10 @@
            color:black;
            margin-bottom:20px;
          }
-         #reservBtn,#hotelListBtn:focus { outline: none; }	      
+         #reservBtn,#hotelListBtn:focus { outline: none; }	
+         .hotelThumb{
+         	text-align: center;
+         }      
    </style>
    <script type="text/javascript">
                $(function(){
@@ -121,6 +124,9 @@
  <!-- CONTENT============================== -->       
          <div class="contentContainer container">
             <div class="contentTit page-header"><h3 class="text-center">${detail.hotel_name}</h3></div>
+               <div class="hotelThumb fadeshop">
+                  <span class="maxproduct"><img src="/petcationStorage/hotel/thumbnail/${detail.hotel_thumb}" alt="" style="object-fit:cover; width:650px; height:143px;"></span>
+               </div>
                <div class="contentTB text-center">
                   <div class="fontchange">
                      <div class="text-right">

@@ -160,7 +160,7 @@
     font-size: 18px;
     justify-content: center;
     align-items: center;
-    cursor: default;
+    cursor: pointer;
 }
 
 .lightpick__day.is-today {
@@ -178,8 +178,8 @@
 .lightpick__day.is-disabled {
     pointer-events: none;
 }
-.is-disabled{
-	opacity: 0.38;
+.is-disabled:not(.is-start-date) {
+    opacity: 0.38;
 }
 
 .lightpick__day.disabled-tooltip {

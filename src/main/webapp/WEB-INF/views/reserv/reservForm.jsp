@@ -89,7 +89,6 @@
             let reservDate = "";
             let res_day = [];
             
-            
             listAll(hotel_no);
             
             function listAll(hotel_no){
@@ -206,6 +205,24 @@
 			    }
 			}
 			
+			$("#phone").on("input", function() {
+				let val = $(this).val().replace(/\D/g, "");
+				let len = val.length;
+				let result = "";
+				
+				if (len < 4) {
+					result = val;
+				} else if (len < 7) {
+					result = val.substring(0, 3) + "-" + val.substring(3);
+				} else if (len < 11) {
+					result = val.substring(0, 3) + "-" + val.substring(3, 6) + "-" + val.substring(6);
+				} else {
+					result = val.substring(0, 3) + "-" + val.substring(3, 7) + "-" + val.substring(7);
+				}
+				
+				$(this).val(result);
+			});
+			
 			/* 결제 버튼 클릭 */
             $("#pay").click(function(){
                if(!chkData("#checkin","예약 일자를 ")) return;
@@ -287,7 +304,7 @@
               
                
             });
-               
+// 토스 페이먼츠로 바꾸장~
                
             function pay(data){
                IMP.init('imp60663075'); // 관리자 콘솔 -> 가맹점 식별코드 

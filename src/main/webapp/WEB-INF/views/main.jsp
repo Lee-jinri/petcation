@@ -55,6 +55,10 @@
 	.morehotel{
 		animation:heartBeat 1.3s linear infinite;
 	}
+	.productbox:hover {
+	    cursor: pointer;
+	    background-color: #f7f7f7;
+	}
 </style>
 
 <script>
@@ -107,6 +111,11 @@
 				"action":"/community/communityBoardDetail/"+c_no
 			});
 			$("#f_data").submit();
+      })
+      
+      $(".productbox").click(function(){
+			let hotelNo = $(this).attr("data-no");
+			location.href = "/hotel/hotelDetail?hotel_no=" + hotelNo;
       })
    });
 </script>
@@ -168,7 +177,7 @@
       		<c:when test="${not empty mainHotelList}">
 		     	<c:forEach items="${mainHotelList }" var="hotel" varStatus="status">
 			         <div class="col-md-4">
-			            <div class="productbox">
+			            <div class="productbox" data-no="${hotel.hotel_no }">
 			               <div class="fadeshop">
 			                  <span class="maxproduct"><img src="/petcationStorage/hotel/thumbnail/${hotel.hotel_thumb}" alt="" style="object-fit:cover; width:650px; height:143px;"></span>
 			               </div>
