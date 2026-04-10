@@ -12,7 +12,7 @@ public class ReservVO extends CommonVO {
 	private String	reserv_name 	= ""; 	// 예약자명
 	private String 	reserv_phone 	= "";	// 예약자 핸드폰 번호
 	private int		reserv_people 	= 0;	// 예약인원
-	private int 	reserv_status 	= 0;	// 예약 상태 (1:예약중 2:이용완료 3: 예약취소)
+	private String 	reserv_status ;	        // 예약 상태 (READY, DONE, CANCLED)
 	private String	checkin			= "";	// 체크인 날짜
 	private String	checkout		= ""; 	// 체크아웃 날짜
 	private int 	reserv_price	= 0;	// 예약 가격
