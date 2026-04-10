@@ -19,30 +19,55 @@
 	<select id="reservDate" parameterType="int" resultType="reserv">
 		SELECT TO_CHAR(checkin, 'YYYY-MM-DD') as checkin, TO_CHAR(checkout,'YYYY-MM-DD') as checkout
 		FROM reserv 
-		where hotel_no = #{hotel_no} AND reserv_status = 1 order by reserv_date desc
+		where hotel_no = #{hotel_no} 
+		AND (reserv_status = 'DONE' OR reserv_status = 'READY')
+		order by reserv_date desc
 	</select>
 	
 	
-	<insert id="reservInsert" parameterType="reserv">
+	<insert id="reservInsert" parameterType="reservRequest">
 		INSERT INTO reserv(
-						reserv_no, reserv_name, reserv_phone, reserv_people, reserv_status, 
-						checkin, checkout, reserv_price, merchant_uid, user_no, hotel_no, hotel_name, reserv_etc) 
+			reserv_no, reserv_name, reserv_phone, reserv_people, reserv_status, reserv_date,
+			checkin, checkout, reserv_price, order_id, user_no, hotel_no, hotel_name, reserv_etc) 
 		VALUES(
-						reserv_seq.nextval, #{reserv_name}, #{reserv_phone}, #{reserv_people}, 1,
-						TO_DATE(#{checkin},'YYYY-MM-DD'), TO_DATE(#{checkout},'YYYY-MM-DD'), #{reserv_price}, #{merchant_uid}, #{user_no}, #{hotel_no},#{hotel_name},#{reserv_etc}) 
+			reserv_seq.nextval, #{reserv_name}, #{reserv_phone}, #{reserv_people}, 'READY', SYSDATE,
+			TO_DATE(#{checkin},'YYYY-MM-DD'), TO_DATE(#{checkout},'YYYY-MM-DD'), #{price}, #{orderId}, #{userNo}, #{hotelNo}, #{hotelName},#{reserv_etc}) 
 	</insert>
 	
+	<update id="completeReservation">
+		UPDATE reserv
+		SET reserv_status = 'DONE'
+		WHERE order_id = #{orderId}
+		AND reserv_status = 'READY'
+	</update>
+	
 	<select id="reservResult" parameterType="reserv" resultType="reserv">
-		SELECT r.reserv_no, r.checkin, r.checkout,h.hotel_name, r.reserv_price, r.reserv_name, r.reserv_phone FROM hotel h left join reserv r ON h.hotel_name = #{hotel_name} AND r.checkin = #{checkin} AND r.checkout = #{checkout} 
+		SELECT 
+	        r.reserv_no, 
+	        r.checkout,
+	        r.reserv_price, 
+	        r.reserv_name, 
+	        r.reserv_phone,
+	        h.hotel_name,
+	        TO_CHAR(r.checkin, 'YYYY-MM-DD') as checkin, 
+	        TO_CHAR(r.checkout,'YYYY-MM-DD') as checkout
+	    FROM reserv r 
+	    INNER JOIN hotel h ON r.hotel_no = h.hotel_no 
+	    WHERE r.order_id = #{orderId}
 	</select>
 
 	<update id="reservDelete" parameterType="reserv">
 		update reserv
-		set reserv_status = 3
+		set reserv_status = 'CANCELED'
 		where reserv_no =#{reserv_no} 
 	</update>
 	
-
-
-
+	<select id="isBooked" resultType="int">
+		<![CDATA[
+	    SELECT COUNT(*) 
+	    FROM reserv
+	    WHERE hotel_no = #{hotelNo}
+	      AND "CHECKIN" < #{checkout} AND "CHECKOUT" > #{checkin}
+	    ]]>
+	</select>
 </mapper>
