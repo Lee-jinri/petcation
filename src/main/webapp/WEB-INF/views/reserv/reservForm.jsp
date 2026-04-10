@@ -11,9 +11,8 @@
 	href="/resources/include/calendar/css/lightpick.css">
 <!-- Lightpick JS -->
 <script src="/resources/include/calendar/js/lightpick.js"></script>
-<!-- import.payment.js -->
-<script type="text/javascript"
-	src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+
+<script src="https://js.tosspayments.com/v2/standard"></script>
 
 <style>
 	#pay {
@@ -72,34 +71,41 @@
 	}
 	
 	
-	.reservation_Info, .personal_info, #agreeDiv {
+	.reservation_Info, .personal_info {
 		margin-top: 80px;
 	}
 </style>
 
-<script type="text/javascript">
-         $(function(){ 
-            let price = "";
-            let days = "";
+	<script type="text/javascript">
+         $(function(){
+			let msg = "${errorMessage}";
+			   
+			if (msg) {
+				alert(msg);
+			}
+             
+            let startDate = "";
+            let endDate = "";
             
-            let checkin = "";
-            let checkout = "";
-            
-            let hotel_no = ${hotelVO.hotel_no};
-            let reservDate = "";
+            const hotel_no = ${hotelVO.hotel_no};
             let res_day = [];
+            let widgets = null;
             
             listAll(hotel_no);
+            
+            const clientKey = "test_ck_DnyRpQWGrNzWdQ7KJqjLrKwv1M9E";
+            const customerKey = "USER_" + "${lmember.user_no != null ? lmember.user_no : 'guest_1234'}";
+            const tossPayments = TossPayments(clientKey);
+            const payment = tossPayments.payment({ customerKey });
             
             function listAll(hotel_no){
                 let url = "/reserv/reservDate/"+hotel_no;
                 
-                
                 $.getJSON(url,function(data){
                    $(data).each(function(){
                       
-                      checkin = this.checkin;
-                      checkout = this.checkout;
+                      let checkin = this.checkin;
+                      let checkout = this.checkout;
                       
                       console.log(checkin + "/" + checkout);
                       
@@ -137,8 +143,8 @@
 	                    	return;
 	                    }
 	                    
-	                    let startDate = start.format('YYYY-MM-DD');
-	                    let endDate = end.format('YYYY-MM-DD');
+	                    startDate = start.format('YYYY-MM-DD');
+	                    endDate = end.format('YYYY-MM-DD');
 	                    
 	                    console.log("체크인 : "  + startDate);
 	                    console.log("체크아웃 : " + endDate);
@@ -147,14 +153,21 @@
 	                    $("#checkin").val(startDate); 
 	                    $("#checkout").val(endDate);
 	                    
-	                    days = moment(endDate).diff(startDate, 'days');
-	                    price = ${hotelVO.hotel_price} * days;
+	                    let days = moment(endDate).diff(startDate, 'days');
+	                    let price = ${hotelVO.hotel_price} * days;
 	                    
 	                    $("#reserv_price").val(price);
 	                    $("#price").val(price + "원");
 	                    
 	                    if($("#price").val() == NaN){
 	                       "#price".type=hidden;
+	                    }
+	                    
+	                    if(widgets) {
+	                        widgets.setAmount({
+	                            currency: "KRW",
+	                            value: price
+	                        });
 	                    }
 	                }
 	            });
@@ -223,19 +236,20 @@
 				$(this).val(result);
 			});
 			
+			
 			/* 결제 버튼 클릭 */
-            $("#pay").click(function(){
-               if(!chkData("#checkin","예약 일자를 ")) return;
-               if(!chkData("#checkout","예약 일자를" )) return;
+            function validateReservation(){
+               if(!chkData("#checkin","예약 일자를 ")) return false;
+               if(!chkData("#checkout","예약 일자를" )) return false;
                if($("#checkout").val().toString() == "...") {
                   alert("예약 일자를 선택해 주세요.");
-                  return;
+                  return false;
                }
                
             	// 이름 유효성 검사
                var name = $("#name").val();
                
-               if(!chkData("#name","예약자명을 ")) return;
+               if(!chkData("#name","예약자명을 ")) return false;
                
                var n_RegExp = /^[가-힣]{2,15}$/;
                if(!n_RegExp.test(name)){            
@@ -248,7 +262,7 @@
                // 전화번호 유효성 검사
                var phone = $("#phone").val();
                
-               if(!chkData("#phone","예약자 전화번호를 ")) return;
+               if(!chkData("#phone","예약자 전화번호를 ")) return false;
                var p_RegExp = /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/;
                if(!p_RegExp.test(phone)){
                   alert("전화번호를 다시 입력해주세요. 010-1234-5678 또는 02-1234-5678의 형태로 입력하세요.");
@@ -260,7 +274,7 @@
                // 예약 인원 유효성 검사
                var people = $("#people").val();
                
-               if(!chkData("#people","예약 인원을 ")) return;
+               if(!chkData("#people","예약 인원을 ")) return false;
                
                // 1~100
                var m_RegExp = /^(?:[1-9]|[1-9][0-9]|100)$/;
@@ -283,7 +297,7 @@
                let isChecked = $("#agree").prop("checked"); 
                if(!isChecked){
                   alert("이용동의를 확인해주세요.");
-                  return;
+                  return false;
                }
                
 				var result = confirm(
@@ -295,47 +309,88 @@
 					"예약 정보가 맞습니까?"
                );
                
-               if (result) {
-                   // 사용자가 "확인"을 선택한 경우
-                   // 원하는 동작 수행
-                   console.log("사용자가 확인을 선택했습니다.");
-                   pay();
-               } 
-              
-               
-            });
-// 토스 페이먼츠로 바꾸장~
-               
-            function pay(data){
-               IMP.init('imp60663075'); // 관리자 콘솔 -> 가맹점 식별코드 
-               IMP.request_pay({
-                  pg: "html5_inicis",
-                  pay_method:"card",
-                  merchant_uid:"petcation_" + new Date().getTime(),	 // 결제 일련번호 : petcation_ + 현재 날짜 시간
-                  name: "${hotelVO.hotel_name}",
-                  amount: price,   	// 일수 * 금액
-                  buyer_email : "pet@petcation.com",
-                  buyer_name : "펫케이션",
-                  buyer_tel : "02-1234-5678"
-               },  function (rsp) { // callback함수 
-                       if (rsp.success) {	// 결제 성공
-                          alert('결제가 완료되었습니다.');
-                          
-                          $("#merchant_uid").val(rsp.merchant_uid);
-                        
-                        $("#reserv_form").attr({
-                             "method" : "post",
-                             "action" : "/reserv/reservInsert"
-                          });
-                        $("#reserv_form").submit();
-                        } else {	//  결제 실패
-                        let msg = '결제에 실패하였습니다. 에러내용 : ' + rsp.error_msg;
-                        alert(msg);
-                        document.location.href="/reserv/reservForm?hotel_no=" + ${hotelVO.hotel_no}; //alert창 확인 후 이동할 url 설정
-                     }
-               });
+				if (result) {
+					return true;
+				} else {
+					return false;
+				}
+            };
+            
+            function getPaymentData() {
+            	return {
+            		name: $("#name").val(),
+            		phone: $("#phone").val(),
+            		price: $("#reserv_price").val(),
+            		hotelName: '${hotelVO.hotel_name}',
+            		people: $("#people").val(),
+            		reserv_etc: $("#reserv_etc").val(),
+            	};
             }
-         });
+            
+            $("#payment-button").on("click", function() {
+                requestPayment();
+            });
+            
+            async function requestPayment() {
+                if (!validateReservation()) return;
+				const data = getPaymentData();
+				
+				const response = await fetch("/payments/create", {
+					method: "POST",
+					body: JSON.stringify({
+						'hotelNo': hotel_no,
+						'hotelName': data.hotelName,
+						'reserv_name': data.name,
+						'reserv_phone': data.phone,
+						'reserv_etc': data.reserv_etc,
+						'reserv_people': data.people,
+						'checkin': startDate,
+						'checkout': endDate
+					}),
+					headers: {
+						"Content-Type": "application/json"
+					}
+				});
+					
+				if (!response.ok) {
+				    const err = await response.json();
+				    alert(err.detail || "예약 생성에 실패했습니다.");
+				    return;
+				}
+					
+				const res = await response.json();
+				try {
+					let cleanPhone = data.phone.replace(/-/g, "");
+				
+					await payment.requestPayment({
+	                  	method: "CARD", // 카드 결제
+	                  	amount: {
+	                    currency: "KRW",
+	                    value: res.price,
+					},
+						orderId: res.orderId,
+	                  	orderName: data.hotelName,
+	                  	successUrl: window.location.origin + "/payments/success?hotel_no=" + hotel_no,
+	                  	failUrl: window.location.origin + "/payments/fail",
+	                  	customerEmail: "customer123@gmail.com",
+	                  	customerName: data.name,
+	                  	customerMobilePhone: cleanPhone,
+	                  	card: {
+							useEscrow: false,
+							flowMode: "DEFAULT",
+							useCardPoint: false,
+							useAppCardOnly: false,
+						},
+					});
+				} catch (error) {
+					if (error.code === "USER_CANCEL") {
+						alert("결제가 취소 되었습니다.");
+				    } else {
+				        alert(error.message);
+				    }
+				}
+			}
+		});
       </script>
 
 </head>
@@ -382,10 +437,7 @@
 				<input type="hidden" id="checkin" name="checkin"> 
 				<input type="hidden" id="checkout" name="checkout"> 
 				<input type="hidden" id="hotel_no" name="hotel_no" value="${hotelVO.hotel_no }"> 
-				<input type="hidden" id="hotel_name" name="hotel_name" value="${hotelVO.hotel_name }">
 				<input type="hidden" id="reserv_price" name="reserv_price">
-				<input type="hidden" id="merchant_uid" name="merchant_uid">
-
 
 				<div class="reservation_Info">
 					<h3>Reservation Info</h3>
@@ -463,7 +515,13 @@
 			<br />
 
 			<div class="text-center">
-				<input type="button" id="pay">
+				<!-- 결제 UI -->
+				<div id="payment-method"></div>
+				<!-- 이용약관 UI -->
+				<div id="agreement"></div>
+				<!-- 결제하기 버튼 -->
+				
+				<button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
 			</div>
 		</div>
 	</div>
