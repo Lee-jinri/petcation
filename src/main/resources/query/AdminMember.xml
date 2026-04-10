@@ -73,11 +73,11 @@
 		SELECT 
 			user_no, reserv_people, reserv_status, reserv_no, reserv_name, reserv_phone, 
 			to_char(checkin, 'YYYY-MM-DD') as checkin, to_char(checkout, 'YYYY-MM-DD') as checkout, 
-			reserv_price, hotel_name, merchant_uid , reserv_etc, user_id
+			reserv_price, hotel_name, order_id , reserv_etc, user_id
 		FROM ( SELECT
 					rownum as rnum, r.user_no, reserv_people, reserv_status, reserv_no, reserv_name, reserv_phone, 
 					checkin, checkout, 
-					reserv_price, hotel_name, merchant_uid , reserv_etc, m.user_id
+					reserv_price, hotel_name, order_id , reserv_etc, m.user_id
 				FROM reserv r LEFT JOIN member m ON m.user_no = r.user_no
 				where ]]>
 				<trim prefix="(" suffix=") AND " prefixOverrides="AND">

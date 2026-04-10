@@ -9,4 +9,5 @@ public interface User_HotelService {
 	public List<HotelVO> hotelList(HotelVO hvo);
 	public User_HotelVO hotelDetail(User_HotelVO uhvo);
 	public int hotelListCnt(HotelVO hvo);
+    public int getPriceByHotelNo(int hotelNo);
 }

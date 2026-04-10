@@ -48,7 +48,10 @@ const onGeoSuccess = (position) => {
 };
 
 const onGeoError = () => {
-  alert("I can't find you");
+  console.warn("위치 정보를 가져올 수 없습니다.");
+  // 기본 위치(서울)로 대체
+  const defaultUrl = `https://api.openweathermap.org/data/2.5/weather?lat=37.5665&lon=126.9780&appid=${API_KEY}&units=metric`;
+  getWeatherCurrent(defaultUrl);
 };
 
 navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);

@@ -1,0 +1,15 @@
+/target/
+
+# 빌드 결과물 제외
+target/
+bin/
+
+# IDE 설정 파일 제외
+.settings/
+.classpath
+.project
+.metadata/
+
+# 임시 파일 및 로그
+*.log
+*.tmp

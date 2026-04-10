@@ -4,12 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.petcation.client.hotel.vo.User_HotelVO;
 import com.petcation.admin.hotel.vo.HotelVO;
 import com.petcation.client.hotel.dao.User_HotelDao;
+import com.petcation.client.hotel.vo.User_HotelVO;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 
 @Service
 @AllArgsConstructor
@@ -39,4 +38,9 @@ public class User_HotelServiceImpl implements User_HotelService {
 	public int hotelListCnt(HotelVO hvo) {
 		return User_hotelDao.hotelListCnt(hvo);
 	}
+	
+    @Override
+    public int getPriceByHotelNo(int hotelNo) {
+        return User_hotelDao.getPriceByHotelNo(hotelNo);
+    }
 }

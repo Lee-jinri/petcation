@@ -40,7 +40,7 @@
 	<select id="reservList" parameterType="reserv" resultType="reserv">
 		SELECT
 			reserv_no, reserv_name, reserv_phone, to_char(checkin, 'YYYY-MM-DD') as checkin, to_char(checkout, 'YYYY-MM-DD') as checkout, 
-			reserv_price, hotel_name, merchant_uid , reserv_status, reserv_etc
+			reserv_price, hotel_name, order_id , reserv_status, reserv_etc
 		FROM reserv where user_no = #{user_no} order by reserv_no desc
 	</select>
 	

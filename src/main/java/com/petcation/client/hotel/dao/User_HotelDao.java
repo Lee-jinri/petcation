@@ -10,4 +10,5 @@ public interface User_HotelDao {
 
 	public User_HotelVO hotelDetail(User_HotelVO uhvo);
 	public int hotelListCnt(HotelVO hvo);
+    public int getPriceByHotelNo(int hotelNo);
 }

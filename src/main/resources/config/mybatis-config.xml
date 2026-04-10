@@ -17,5 +17,8 @@
 	  <typeAlias type="com.petcation.admin.hotel.vo.HotelVO" alias="hotels"/>
 	  <typeAlias type="com.petcation.client.qna.vo.QnaVO" alias="qvo"/>
 	  <typeAlias type="com.petcation.client.qnareply.vo.QreplyVO" alias="reply"/>
+	  <typeAlias type="com.petcation.client.payments.vo.PaymentsVO" alias="payment"/>
+	  <typeAlias type="com.petcation.common.vo.ReservationRequestDTO" alias="reservRequest"/>
+	  
    </typeAliases>
 </configuration>

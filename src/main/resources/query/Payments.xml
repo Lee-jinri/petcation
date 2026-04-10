@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.petcation.client.payments.dao.PaymentsDAO">
+
+	<insert id="createPayment">
+		INSERT INTO payments (payment_id, order_id, price, user_no, status, created_at)
+		VALUES (payments_seq.NEXTVAL, #{order_id}, #{price}, #{user_no}, 'READY', CURRENT_TIMESTAMP)
+	</insert>
+	
+	<select id="getPayment" resultType="payment">
+		SELECT order_id, price, status FROM payments WHERE order_id = #{orderId}
+	</select>
+	
+	<update id="completePayment">
+		UPDATE payments 
+		SET 
+			payment_key = #{payment_key}, 
+			method = #{method}, 
+			status= 'DONE', 
+			approved_at = CURRENT_TIMESTAMP
+		WHERE order_id = #{orderId}
+	</update>
+	
+	<update id="failPayment">
+		UPDATE payments 
+		SET 
+			status= 'FAIL', 
+			approved_at = CURRENT_TIMESTAMP
+		WHERE order_id = #{orderId}
+	</update>
+</mapper>

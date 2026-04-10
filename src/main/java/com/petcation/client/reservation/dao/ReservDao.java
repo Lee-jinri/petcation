@@ -1,10 +1,14 @@
 package com.petcation.client.reservation.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
 
 import com.petcation.client.hotel.vo.User_HotelVO;
 import com.petcation.client.join.vo.MemberVO;
 import com.petcation.client.reservation.vo.ReservVO;
+import com.petcation.common.vo.ReservationRequestDTO;
 
 public interface ReservDao {
 	
@@ -12,12 +16,11 @@ public interface ReservDao {
 	public int reservForm(MemberVO mvo);
 	//public List<ReservVO> reservList(ReservVO rvo);
 	
-	public int reservInsert(ReservVO rvo);
-	
-	public ReservVO reservResult(ReservVO rvo);
+	public int reservInsert(ReservationRequestDTO req);
+	public ReservVO reservResult(String orderId);
 	public int reservDelete(ReservVO rvo);
 	
 	public List<ReservVO> reservDate(int hotel_no);
-	
-	
+    public int isBooked(@Param("hotelNo") int hotelNo, @Param("checkin") LocalDateTime checkin, @Param("checkout") LocalDateTime checkout);
+    public void completeReservation(String orderId);
 }
