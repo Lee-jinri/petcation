@@ -44,7 +44,6 @@
 	<select id="reservResult" parameterType="reserv" resultType="reserv">
 		SELECT 
 	        r.reserv_no, 
-	        r.checkout,
 	        r.reserv_price, 
 	        r.reserv_name, 
 	        r.reserv_phone,
@@ -55,12 +54,6 @@
 	    INNER JOIN hotel h ON r.hotel_no = h.hotel_no 
 	    WHERE r.order_id = #{orderId}
 	</select>
-
-	<update id="reservDelete" parameterType="reserv">
-		update reserv
-		set reserv_status = 'CANCELED'
-		where reserv_no =#{reserv_no} 
-	</update>
 	
 	<select id="isBooked" resultType="int">
 		<![CDATA[
@@ -68,6 +61,22 @@
 	    FROM reserv
 	    WHERE hotel_no = #{hotelNo}
 	      AND "CHECKIN" < #{checkout} AND "CHECKOUT" > #{checkin}
+	      AND reserv_status != 'CANCELED'
 	    ]]>
 	</select>
+	
+	<select id="getReservForCancel" resultType="reserv">
+		SELECT 
+			user_no,
+			reserv_status,
+			TO_CHAR(checkin, 'YYYY-MM-DD') as checkin
+		FROM reserv
+		WHERE order_id = #{orderId}
+	</select>
+	
+	<update id="cancelReservation">
+		UPDATE reserv
+		SET reserv_status = 'CANCELED'
+		WHERE order_id = #{orderId}
+	</update>
 </mapper>

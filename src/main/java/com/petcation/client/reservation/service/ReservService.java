@@ -14,8 +14,9 @@ public interface ReservService {
 	public int reservInsert(ReservationRequestDTO req);
 	public ReservVO reservResult(String orderId);
 
-	public int reservDelete(ReservVO rvo);
 	public List<ReservVO> reservDate(int hotel_no);
     public boolean isBooked(int hotelNo, LocalDateTime checkin, LocalDateTime checkout);
     public void completeReservation(String orderId);
+    public ReservVO getReservForCancel(String orderId);
+    public void cancelReservation(String orderId);
 }

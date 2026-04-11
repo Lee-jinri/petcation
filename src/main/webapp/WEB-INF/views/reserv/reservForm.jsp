@@ -15,6 +15,7 @@
 <script src="https://js.tosspayments.com/v2/standard"></script>
 
 <style>
+	.container{margin-bottom: 30px;}
 	#pay {
 		background: url( "/resources/images/common/paybtn.png" ) no-repeat;
 		border: none;
@@ -73,6 +74,30 @@
 	
 	.reservation_Info, .personal_info {
 		margin-top: 80px;
+	}
+	
+	#payment-button {
+	    padding: 8px 20px;
+	    border: none;
+	    border-radius: 6px;
+	    font-size: 14px;
+	    cursor: pointer;
+	    transition: opacity 0.2s;
+	    background: none; 
+	    border: 2px solid #4A90E2; 
+	    color: #4A90E2;
+	}
+
+	#payment-button:hover {
+	    opacity: 0.7;
+	    background-color: #4A90E2;
+	    color: #fff;
+	    transition: background-color 0.2s;
+	}
+	
+	#payment-button:disabled {
+	    opacity: 0.5;
+	    cursor: not-allowed;
 	}
 </style>
 
@@ -300,8 +325,10 @@
                   return false;
                }
                
+               const hotelName = document.getElementById("hotel_name").textContent;
+               
 				var result = confirm(
-					"숙소 : " + $("#hotel_name").val() + "\n" +
+					"숙소 : " + hotelName + "\n" +
 					"가격 : " + $("#price").val() + "\n" + 
 					"예약 일자 : " + $("#checkin").val() + " ~ " + $("#checkout").val() + "\n" +
 					"예약자명 : " + $("#name").val() + "\n" +
@@ -511,8 +538,6 @@
 						id="agree"> 예약 취소는 체크인 날짜 기준 7일 전 까지 가능합니다.
 				</div>
 			</div>
-			<br />
-			<br />
 
 			<div class="text-center">
 				<!-- 결제 UI -->

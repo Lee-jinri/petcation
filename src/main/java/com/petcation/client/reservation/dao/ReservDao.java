@@ -18,9 +18,10 @@ public interface ReservDao {
 	
 	public int reservInsert(ReservationRequestDTO req);
 	public ReservVO reservResult(String orderId);
-	public int reservDelete(ReservVO rvo);
 	
 	public List<ReservVO> reservDate(int hotel_no);
     public int isBooked(@Param("hotelNo") int hotelNo, @Param("checkin") LocalDateTime checkin, @Param("checkout") LocalDateTime checkout);
     public void completeReservation(String orderId);
+    public ReservVO getReservForCancel(String orderId);
+    public void cancelReservation(String orderId);
 }

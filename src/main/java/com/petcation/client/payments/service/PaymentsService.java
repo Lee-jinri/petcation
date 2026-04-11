@@ -94,4 +94,38 @@ public class PaymentsService {
     public void failPayment(String orderId) {
         paymentsDao.failPayment(orderId);
     }
+
+    @Transactional
+    public void cancel(String orderId) {
+        String encoded = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+        String paymentKey = paymentsDao.getPaymentKey(orderId);
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel"))
+                .header("Authorization", "Basic " + encoded)
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cancelReason\":\"구매자 변심\"}"))
+                .build();
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            
+            log.info("응답 상태 코드: " + response.statusCode());
+            log.info("응답 바디: " + response.body());
+            
+            if (response.statusCode() == 200) {
+                JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
+                String status = jsonObject.get("status").getAsString();
+                if ("CANCELED".equals(status)) {
+                    paymentsDao.cancelPayment(orderId);
+                } else {
+                    throw new RuntimeException("결제 취소 상태가 올바르지 않습니다.");
+                }
+            } else {
+                log.error("토스 취소 실패: " + response.body());
+                throw new RuntimeException("결제 취소 API 호출에 실패했습니다.");
+            }
+        }catch (IOException | InterruptedException e) {
+            log.error("토스 API 호출 실패: "+ e.getMessage());
+            throw new RuntimeException("결제 취소 중 오류가 발생했습니다.");
+        }
+    }
 }

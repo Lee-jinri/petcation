@@ -86,6 +86,6 @@ public class HotelServiceImpl implements HotelService {
 		return hotelDao.hotelListCnt(hvo);
 	}
 
-	
+
 
 }

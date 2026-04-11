@@ -47,13 +47,6 @@ public class ReservServiceImpl implements ReservService {
 	}
 
 	@Override
-	public int reservDelete(ReservVO rvo) {
-		int result = reservDao.reservDelete(rvo);
-		
-		return result;
-	}
-
-	@Override
 	public List<ReservVO> reservDate(int hotel_no) {
 		List<ReservVO> reservVO = reservDao.reservDate(hotel_no);
 		return reservVO;
@@ -70,9 +63,18 @@ public class ReservServiceImpl implements ReservService {
         return false;
     }
 
-
     @Override
     public void completeReservation(String orderId) {
         reservDao.completeReservation(orderId);
+    }
+
+    @Override
+    public ReservVO getReservForCancel(String orderId) {
+        return reservDao.getReservForCancel(orderId);
+    }
+
+    @Override
+    public void cancelReservation(String orderId) {
+        reservDao.cancelReservation(orderId);
     }
 }

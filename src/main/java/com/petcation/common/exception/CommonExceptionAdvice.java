@@ -52,6 +52,22 @@ public class CommonExceptionAdvice {
             .body(body);
 	}
 	
+	@ExceptionHandler(ForbiddenException.class)
+    @RequestMapping(produces = "application/json")
+    public ResponseEntity<Map<String, Object>> handleForbidden(ForbiddenException ex, HttpServletRequest req) throws IOException {
+        log.warn("403 FORBIDDEN: "+ ex.getMessage());
+        
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", HttpStatus.FORBIDDEN.getReasonPhrase());
+        body.put("detail", ex.getMessage());
+        body.put("path", req.getRequestURI());
+        body.put("forbidden", true);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+    }
+	
 	@ExceptionHandler(Exception.class)
 	public String exceptionMethod(Exception ex, Model model) {
 		log.error("Exception...." + ex.getMessage());
