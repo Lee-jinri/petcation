@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,5 +79,18 @@ public class PaymentsController {
 	        redirectAttributes.addFlashAttribute("errorMessage", "결제에 실패했습니다. 다시 시도해주세요.");
 	        return "redirect:/reserv/reservForm?hotel_no=" + hotelNo;
 	    }
+	}
+	
+	@PatchMapping(value = "/{orderId}/cancel", produces = "application/json; charset=UTF-8")
+    @ResponseBody
+	public ResponseEntity<String> cancel(@PathVariable String orderId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        MemberVO userID = (MemberVO) session.getAttribute("lmember");
+        if(userID == null) throw new UnauthorizedException("로그인이 필요한 서비스 입니다.");
+        int userNo = userID.getUser_no();
+        
+	    paymentsFacade.cancelPaymentAndReservation(orderId, userNo);
+	    
+	    return ResponseEntity.ok("정상적으로 취소되었습니다.");
 	}
 }

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.petcation.client.hotel.vo.User_HotelVO;
@@ -58,22 +57,4 @@ public class ReservController {
 	      date = reservService.reservDate(hotel_no);
 	      return date;
 	 }
-		
-	 @RequestMapping(value = "/reservDelete", method = RequestMethod.GET) 
-	 public String reservDelete(@ModelAttribute("data") ReservVO rvo, HttpServletRequest request, Model model) {
-		String url = "";
-		
-		HttpSession session = request.getSession();
-		MemberVO userID = (MemberVO) session.getAttribute("lmember");
-		rvo.setUser_no(userID.getUser_no());
-			
-		int result = reservService.reservDelete(rvo);
-		 
-		if(result == 1) {
-			url="/mypage/reservList";
-		}else {
-			url="/mypage/reservList";
-		}
-		return "redirect:"+url;
-	}
 }
