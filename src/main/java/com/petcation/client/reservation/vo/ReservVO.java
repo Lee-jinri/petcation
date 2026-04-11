@@ -1,5 +1,8 @@
 package com.petcation.client.reservation.vo;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import com.petcation.common.vo.CommonVO;
 
 import lombok.Data;
@@ -28,4 +31,16 @@ public class ReservVO extends CommonVO {
 	private int		reserv_cnt 		= 0; 	// 당일 결제 건수
 	private int		reserv_pay_cnt 	= 0;	// 당일 결제 금액
 	
+	public boolean isCanCancel() {
+	    if (this.checkin == null || this.checkin.isEmpty() || this.reserv_status == null) {
+	        return false;
+	    }
+        try {
+            LocalDate checkinDate = LocalDate.parse(this.checkin, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate limitDate = LocalDate.now().plusDays(7);
+            return checkinDate.isAfter(limitDate) && "DONE".equals(this.reserv_status);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

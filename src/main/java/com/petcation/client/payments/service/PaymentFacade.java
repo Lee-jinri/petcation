@@ -11,6 +11,7 @@ import com.petcation.client.hotel.service.User_HotelService;
 import com.petcation.client.reservation.service.ReservService;
 import com.petcation.client.reservation.vo.ReservVO;
 import com.petcation.common.exception.BadRequestException;
+import com.petcation.common.exception.ForbiddenException;
 import com.petcation.common.vo.ReservationRequestDTO;
 
 import lombok.AllArgsConstructor;
@@ -97,5 +98,31 @@ public class PaymentFacade {
 
     public ReservVO getReservationByOrderId(String orderId) {
         return reservService.reservResult(orderId);
+    }
+
+    public void cancelPaymentAndReservation(String orderId, int userNo) {
+        validateCancellation(orderId, userNo); // 1. 취소 가능 여부 검증
+        paymentsService.cancel(orderId); // 2. 결제 취소 (토스 API)
+        reservService.cancelReservation(orderId); // 3. 예약 상태 변경 (DB)
+    }
+
+    private void validateCancellation(String orderId, int userNo) {
+        ReservVO r = reservService.getReservForCancel(orderId);
+
+        if (r.getUser_no() != userNo) {
+            throw new ForbiddenException("본인의 예약만 취소할 수 있습니다."); 
+        }
+        
+        if(r.getReserv_status().equals("CANCELED")) {
+            throw new BadRequestException("이미 취소된 예약입니다.");
+        }
+        
+        LocalDateTime checkInDateTime = LocalDate.parse(r.getCheckin()).atStartOfDay();
+        LocalDateTime deadline = checkInDateTime.minusDays(7);
+        LocalDateTime now = LocalDateTime.now();
+        
+        if (now.isAfter(deadline)) {
+            throw new BadRequestException("예약 취소는 체크인 날짜 7일 전까지만 가능합니다.");
+        }
     }
 }
