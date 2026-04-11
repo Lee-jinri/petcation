@@ -22,6 +22,17 @@
 			.main 	{margin-top : 50px; margin-bottom:50px;}
 			.table 	{width:50%; margin-left:auto;margin-right:auto;}
 			.m		{margin-bottom : 30px; }
+			#main {
+			    padding: 8px 20px;
+			    border: none;
+			    border-radius: 6px;
+			    font-size: 14px;
+			    cursor: pointer;
+			    transition: opacity 0.2s;
+			    background: none; 
+			    border: 2px solid #95a5a6; 
+			    color: #95a5a6;
+			}
 		</style>		
 		
 		<script type="text/javascript">
@@ -67,7 +78,7 @@
 			<!--========= 결제 완료 페이지 ============== -->
 			<div class="main text-center">
 				<div class="title">
-					<h1>예약이 완료 되었습니다.</h1>
+					<h3>예약이 완료 되었습니다.</h3>
 				</div>
 				
 				<table class="table table-bordered ">

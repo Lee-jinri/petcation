@@ -5,9 +5,51 @@
 	<!-- Moment Js -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
 	
+	<!-- SCRIPTS =============================-->
+	<script src="/resources/include/scorilo/js/jquery-.js"></script>
+	<script src="/resources/include/scorilo/js/bootstrap.min.js"></script>
+	<script src="/resources/include/scorilo/js/anim.js"></script>
 	<style>
 		#reservResult {color : #58ACFA;}
 		#reservCancel {color : #210B61;}
+		#reservList .table > tbody > tr > td {
+		    vertical-align: middle;
+		}
+		.table-striped td {
+		    height: 50px;
+		    vertical-align: middle;
+		    padding: 10px 5px;
+		    white-space: nowrap;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		}
+		.reservCancel {
+		    background-color: #4a4a4a;
+		    color: white;
+		    border: none;
+		    padding: 7px 14px;
+		    border-radius: 20px;
+		    font-size: 12px;
+		    letter-spacing: -0.5px;
+		}
+
+		.reservCancel:hover {
+		    background-color: #222;
+		    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+		.cancel-notice {
+		    background-color: #fffdf0;
+		    border: 1px solid #f1e4a1;
+		    padding: 12px 18px;
+		    margin: 20px 0;
+		    border-radius: 8px;
+		    display: inline-block;
+		}
+		
+		.cancel-notice p {
+		    margin: 0;
+		    color: #856404;
+		}
 	</style>
 	<script type="text/javascript">
 	
@@ -215,10 +257,6 @@
 </section>
 
 
-<!-- SCRIPTS =============================-->
-<script src="/resources/include/scorilo/js/jquery-.js"></script>
-<script src="/resources/include/scorilo/js/bootstrap.min.js"></script>
-<script src="/resources/include/scorilo/js/anim.js"></script>
 
 </body>
 </html>
