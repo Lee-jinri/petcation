@@ -300,8 +300,10 @@
                   return false;
                }
                
+               const hotelName = document.getElementById("hotel_name").textContent;
+               
 				var result = confirm(
-					"숙소 : " + $("#hotel_name").val() + "\n" +
+					"숙소 : " + hotelName + "\n" +
 					"가격 : " + $("#price").val() + "\n" + 
 					"예약 일자 : " + $("#checkin").val() + " ~ " + $("#checkout").val() + "\n" +
 					"예약자명 : " + $("#name").val() + "\n" +
