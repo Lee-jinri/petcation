@@ -8,7 +8,10 @@
 	</insert>
 	
 	<select id="getPayment" resultType="payment">
-		SELECT order_id, price, status FROM payments WHERE order_id = #{orderId}
+		SELECT order_id, price, status 
+		FROM payments 
+		WHERE order_id = #{orderId}
+		FOR UPDATE
 	</select>
 	
 	<update id="completePayment">

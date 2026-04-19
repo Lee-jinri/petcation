@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.petcation.client.join.vo.MemberVO;
 import com.petcation.client.payments.service.PaymentFacade;
 import com.petcation.client.payments.service.PaymentsService;
+import com.petcation.client.payments.vo.WebhookDto;
 import com.petcation.client.reservation.vo.ReservVO;
 import com.petcation.common.exception.UnauthorizedException;
 import com.petcation.common.vo.ReservationRequestDTO;
@@ -98,5 +99,11 @@ public class PaymentsController {
 	    paymentsFacade.cancelPaymentAndReservation(orderId, userNo);
 	    
 	    return ResponseEntity.ok("정상적으로 취소되었습니다.");
+	}
+	
+	@PostMapping("/webhook")
+	public ResponseEntity<Void> handleWebhook(@RequestBody WebhookDto payload) {
+	    paymentsService.processWebhook(payload.getData());
+	    return ResponseEntity.ok().build();
 	}
 }

@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.petcation.client.payments.dao.PaymentsDAO;
 import com.petcation.client.payments.vo.PaymentsVO;
+import com.petcation.client.payments.vo.WebhookDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
@@ -36,19 +37,7 @@ public class PaymentsService {
 	
 	@Transactional
     public boolean confirmPayment(String paymentKey, String orderId, Long amount) {
-        PaymentsVO payment = paymentsDao.getPayment(orderId);
-        if (payment == null) {
-            return false;
-        }
-        
-        Long originalAmount = (long)payment.getPrice();
-        if (!originalAmount.equals(amount)) {
-            return false;
-        }
-        
-        if ("DONE".equals(payment.getStatus())) {
-            return false;
-        }
+        if (!preValidate(orderId, amount)) return false;
         
         String jsonBody = String.format(
             "{\"paymentKey\":\"%s\",\"orderId\":\"%s\",\"amount\":%d}", 
@@ -76,20 +65,60 @@ public class PaymentsService {
                 String status = jsonObject.get("status").getAsString();
                 if ("DONE".equals(status)) {
                     String method = jsonObject.get("method").getAsString();
-                    log.info("결제 승인 완료 주문번호: " + orderId + "결제수단: " + method);
+                    log.info("결제 승인 완료/ 주문번호: " + orderId + " 결제수단: " + method);
                     
-                    paymentsDao.completePayment(paymentKey, method, orderId);
+                    updatePaymentComplete(orderId, paymentKey, method);
                     return true;
                 }
             }
+            String responseBody = response.body();
+            JsonObject errorObject = JsonParser.parseString(responseBody).getAsJsonObject();
             
-            log.error("결제 승인 실패: ="+ response.body());
-            return false;
+            String errorCode = errorObject.get("code").getAsString();
+            String errorMessage = errorObject.get("message").getAsString();
+            
+            log.error("결제 승인 실패 [코드: " + errorCode + "] 메시지: " + errorMessage);
+            throw new RuntimeException(errorMessage);
         } catch (IOException | InterruptedException e) {
             log.error("토스 API 호출 실패: "+ e.getMessage());
             return false;
         }
     }
+	
+	@Transactional
+	public void processWebhook(WebhookDto.PaymentData data) {
+	    if (!preValidate(data.getOrderId(), data.getTotalAmount())) return;
+
+	    updatePaymentComplete(data.getOrderId(), data.getPaymentKey(), data.getMethod());
+	}
+
+	private boolean preValidate(String orderId, Long amount) {
+	    PaymentsVO payment = paymentsDao.getPayment(orderId);
+	    
+	    if (payment == null) {
+	        log.warn("존재하지 않는 주문번호: " + orderId);
+	        return false;
+	    }
+	    
+	    if ("DONE".equals(payment.getStatus())) {
+	        log.info("이미 결제 완료된 주문입니다: " +  orderId);
+	        return false; 
+	    }
+	    amount = 1L;
+	    Long originalAmount = (long)payment.getPrice();
+	    if (!originalAmount.equals(amount)) {
+	        log.error("ERROR: 금액 불일치! [주문번호: " + orderId + "] DB 저장 금액: " + originalAmount + ", 실제 결제 금액: " + amount);
+	        return false;
+	    }
+
+	    return true;
+    }
+
+    // DB 업데이트 로직
+	private void updatePaymentComplete(String orderId, String paymentKey, String method) {
+	    paymentsDao.completePayment(orderId, paymentKey, method);
+	    log.info("결제 완료: 주문번호 "+ orderId);
+	}
 
     public void failPayment(String orderId) {
         paymentsDao.failPayment(orderId);
