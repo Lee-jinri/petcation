@@ -104,11 +104,11 @@
 	<script type="text/javascript">
          $(function(){
 			let msg = "${errorMessage}";
-			   
+
 			if (msg) {
-				alert(msg);
+				showPaymentModal(msg);
 			}
-             
+
             let startDate = "";
             let endDate = "";
             
@@ -413,11 +413,16 @@
 					if (error.code === "USER_CANCEL") {
 						alert("결제가 취소 되었습니다.");
 				    } else {
-				        alert(error.message);
+				    	showPaymentModal(error.message);
 				    }
 				}
 			}
 		});
+         
+		function showPaymentModal(message) {
+			document.getElementById("paymentErrorMessage").textContent = message;
+			document.getElementById("paymentErrorModal").style.display = "flex";
+		}
       </script>
 
 </head>
@@ -548,6 +553,17 @@
 				
 				<button class="button" id="payment-button" style="margin-top: 30px">결제하기</button>
 			</div>
+		</div>
+	</div>
+	<div class="payment-error-overlay" id="paymentErrorModal" style="display:none;">
+		<div class="payment-error-modal">
+			<div class="payment-error-icon">✕</div>
+			<h3 class="payment-error-title">결제 실패</h3>
+			<p class="payment-error-desc" id="paymentErrorMessage"></p>
+			<p class="payment-error-desc">다시 시도해 주세요.</p>
+			<button class="payment-error-btn" onclick="document.getElementById('paymentErrorModal').style.display='none'">
+				확인
+			</button>
 		</div>
 	</div>
 </body>
