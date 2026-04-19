@@ -36,15 +36,6 @@
 		DELETE FROM member where user_id = #{user_id}
 	</delete>
 	
-
-	<select id="reservList" parameterType="reserv" resultType="reserv">
-		SELECT
-			reserv_no, reserv_name, reserv_phone, 
-			to_char(checkin, 'YYYY-MM-DD') as checkin, to_char(checkout, 'YYYY-MM-DD') as checkout, 
-			reserv_price, hotel_name, order_id as orderId , reserv_status, reserv_etc
-		FROM reserv where user_no = #{user_no} order by reserv_no desc
-	</select>
-	
 	<!-- <select id="communityBoardList" parameterType="CommunityBoard" resultType="CommunityBoard">
 		select 
     	c.b_no,c.c_no,c.b_title,c.b_regdate,c.user_id 
@@ -90,6 +81,17 @@
 	<select id="communityBoardListCnt" parameterType="CommunityBoard" resultType="int">
 		SELECT count(*) FROM community
 	</select>	
+
+	<select id="reservList" parameterType="reserv" resultType="reserv">
+		SELECT
+			reserv_no, reserv_name, reserv_phone, 
+			to_char(checkin, 'YYYY-MM-DD') as checkin, to_char(checkout, 'YYYY-MM-DD') as checkout, 
+			reserv_price, hotel_name, order_id as orderId , reserv_status, reserv_etc
+		FROM reserv 
+		WHERE user_no = #{user_no} 
+		AND (reserv_status = 'DONE' OR reserv_status = 'CANCELED')
+		ORDER BY reserv_no desc
+	</select>
 	
 	<select id="reservListCnt" parameterType="reserv" resultType="int">
 		select count(*) from reserv
