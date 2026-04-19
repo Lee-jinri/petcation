@@ -18,5 +18,5 @@ public interface ReservService {
     public boolean isBooked(int hotelNo, LocalDateTime checkin, LocalDateTime checkout);
     public void completeReservation(String orderId);
     public ReservVO getReservForCancel(String orderId);
-    public void cancelReservation(String orderId);
+    void updateReservStatus(String orderId, String status);
 }

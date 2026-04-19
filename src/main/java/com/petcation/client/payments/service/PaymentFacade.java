@@ -103,7 +103,7 @@ public class PaymentFacade {
     public void cancelPaymentAndReservation(String orderId, int userNo) {
         validateCancellation(orderId, userNo); // 1. 취소 가능 여부 검증
         paymentsService.cancel(orderId); // 2. 결제 취소 (토스 API)
-        reservService.cancelReservation(orderId); // 3. 예약 상태 변경 (DB)
+        reservService.updateReservStatus(orderId, "CANCELED"); // 3. 예약 상태 변경 (DB)
     }
 
     private void validateCancellation(String orderId, int userNo) {
@@ -124,5 +124,10 @@ public class PaymentFacade {
         if (now.isAfter(deadline)) {
             throw new BadRequestException("예약 취소는 체크인 날짜 7일 전까지만 가능합니다.");
         }
+    }
+
+    public void processPaymentFail(String orderId) {
+        reservService.updateReservStatus(orderId, "FAILED");
+        paymentsService.updatePaymentStatus(orderId, "FAILED");
     }
 }

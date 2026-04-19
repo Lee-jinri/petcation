@@ -35,10 +35,10 @@
 		WHERE order_id = #{orderId}
 	</select>
 
-	<update id="cancelPayment">
+	<update id="updatePaymentStatus">
 		UPDATE payments
 		SET
-			status = 'CANCELED',
+			status = #{status},
 			approved_at = CURRENT_TIMESTAMP
 		WHERE order_id = #{orderId} 
 	</update>

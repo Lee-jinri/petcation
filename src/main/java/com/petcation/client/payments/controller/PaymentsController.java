@@ -67,18 +67,24 @@ public class PaymentsController {
         @RequestParam Long amount,
         RedirectAttributes redirectAttributes,
         Model model) {
-	    
-	    boolean isConfirmed = paymentsService.confirmPayment(paymentKey, orderId, amount);
-
-	    if (isConfirmed) {
-	        paymentsFacade.completeReservation(orderId);
-	        ReservVO result = paymentsFacade.getReservationByOrderId(orderId);
-	        model.addAttribute("result", result);
-	        return "reserv/success";
-	    } else {
-	        redirectAttributes.addFlashAttribute("errorMessage", "결제에 실패했습니다. 다시 시도해주세요.");
-	        return "redirect:/reserv/reservForm?hotel_no=" + hotelNo;
-	    }
+	    try {
+    	    boolean isConfirmed = paymentsService.confirmPayment(paymentKey, orderId, amount);
+    
+    	    if (isConfirmed) {
+    	        paymentsFacade.completeReservation(orderId);
+    	        ReservVO result = paymentsFacade.getReservationByOrderId(orderId);
+    	        model.addAttribute("result", result);
+    	        return "reserv/success";
+    	    }else {
+    	        paymentsFacade.processPaymentFail(orderId);
+    	        redirectAttributes.addFlashAttribute("errorMessage", "결제 정보 검증에 실패했습니다.");
+    	    }
+    	} catch (RuntimeException e) {
+            log.error("결제 실패 원인: " + e.getMessage());
+            paymentsFacade.processPaymentFail(orderId);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/reserv/reservForm?hotel_no=" + hotelNo;
 	}
 	
 	@PatchMapping(value = "/{orderId}/cancel", produces = "application/json; charset=UTF-8")

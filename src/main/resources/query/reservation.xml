@@ -74,9 +74,9 @@
 		WHERE order_id = #{orderId}
 	</select>
 	
-	<update id="cancelReservation">
+	<update id="updateReservStatus">
 		UPDATE reserv
-		SET reserv_status = 'CANCELED'
+		SET reserv_status = #{status}
 		WHERE order_id = #{orderId}
 	</update>
 </mapper>

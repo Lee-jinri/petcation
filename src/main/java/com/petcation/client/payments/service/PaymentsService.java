@@ -115,7 +115,7 @@ public class PaymentsService {
                 JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
                 String status = jsonObject.get("status").getAsString();
                 if ("CANCELED".equals(status)) {
-                    paymentsDao.cancelPayment(orderId);
+                    paymentsDao.updatePaymentStatus(orderId, "CANCELED");
                 } else {
                     throw new RuntimeException("결제 취소 상태가 올바르지 않습니다.");
                 }
@@ -127,5 +127,9 @@ public class PaymentsService {
             log.error("토스 API 호출 실패: "+ e.getMessage());
             throw new RuntimeException("결제 취소 중 오류가 발생했습니다.");
         }
+    }
+
+    public void updatePaymentStatus(String orderId, String status) {
+        paymentsDao.updatePaymentStatus(orderId, status);
     }
 }
