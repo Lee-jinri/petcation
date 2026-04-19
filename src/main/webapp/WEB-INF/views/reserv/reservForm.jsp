@@ -99,6 +99,69 @@
 	    opacity: 0.5;
 	    cursor: not-allowed;
 	}
+	
+	.payment-error-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+	}
+	
+	.payment-error-modal {
+		background: #fff;
+		border-radius: 16px;
+		padding: 36px 32px;
+		width: 340px;
+		text-align: center;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+	}
+	
+	.payment-error-icon {
+		width: 52px;
+		height: 52px;
+		background: #fff0f0;
+		color: #e03131;
+		border-radius: 50%;
+		font-size: 22px;
+		font-weight: bold;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto 20px;
+	}
+	
+	.payment-error-title {
+		font-size: 18px;
+		font-weight: 700;
+		color: #1a1a1a;
+		margin: 0 0 10px;
+	}
+	
+	.payment-error-desc {
+		font-size: 14px;
+		color: #666;
+		line-height: 1.6;
+		margin: 0 0 24px;
+	}
+	
+	.payment-error-btn {
+		width: 100%;
+		padding: 12px;
+		background: #e03131;
+		color: #fff;
+		border: none;
+		border-radius: 8px;
+		font-size: 15px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	
+	.payment-error-btn:hover {
+		background: #c92a2a;
+	}
 </style>
 
 	<script type="text/javascript">

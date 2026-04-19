@@ -224,7 +224,6 @@ img {
 }
 /*Product Box*/
 .maxproduct {
-	max-height:300px;
 	overflow:hidden;
 	display:inline-block;
 }
@@ -302,7 +301,6 @@ img {
 }
 .fadeshop {
 	position:relative;
-	 max-height:300px;
 }
 .properties-box {
 	padding:20px 20px 15px 20px;

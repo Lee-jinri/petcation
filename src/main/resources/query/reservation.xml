@@ -60,8 +60,8 @@
 	    SELECT COUNT(*) 
 	    FROM reserv
 	    WHERE hotel_no = #{hotelNo}
-	      AND "CHECKIN" < #{checkout} AND "CHECKOUT" > #{checkin}
-	      AND reserv_status != 'CANCELED'
+			AND "CHECKIN" < #{checkout} AND "CHECKOUT" > #{checkin}
+			AND (reserv_status = 'DONE' OR reserv_status = 'READY')
 	    ]]>
 	</select>
 	
