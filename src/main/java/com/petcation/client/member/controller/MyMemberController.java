@@ -142,31 +142,9 @@ public class MyMemberController {
 		 model.addAttribute("reservList", reservList);
 		 int total = memberService.reservListCnt(rvo);
 		 model.addAttribute("pageMaker", new PageDTO(rvo, total));
-		 System.out.println(reservList);
-		 
-		 int reservComplete = memberService.reservComplete();
-		 System.out.println(reservComplete);
-		 
+
 		 return "mypage/reservList"; 
 	 }
-	 
-	 @ResponseBody
-		@GetMapping(value = "/checkin", produces=MediaType.APPLICATION_JSON_VALUE)
-		public List<ReservVO> reservList(MemberVO mvo, HttpServletRequest request){
-			log.info("reservList 호출 성공");
-			
-			HttpSession session = request.getSession();
-            
-			MemberVO userID = (MemberVO) session.getAttribute("lmember");
-			mvo.setUser_no(userID.getUser_no()); 
-			mvo.setUser_id(userID.getUser_id());
-			
-			System.out.println("checkin에서 부름 : " + mvo);
-			List<ReservVO> checkin = memberService.checkin(mvo);
-			
-
-			return checkin;
-		}
 	 
 	 @RequestMapping(value = "/boardList", method = RequestMethod.GET) 
 	 public String boardList(@ModelAttribute("data") MemberVO mvo, CommunityBoardVO cbvo, DiaryVO dvo, HttpServletRequest request, Model model) {

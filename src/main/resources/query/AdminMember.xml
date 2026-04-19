@@ -142,12 +142,4 @@
 	<delete id="memberDiaryDelete" parameterType="int">
       delete from diary where d_no = #{d_no}
    	</delete>
-	
-	<update id="reservComplete">
-		<![CDATA[
-		UPDATE reserv 
-		SET reserv_status = 2 
-		WHERE 0 < (TRUNC(SYSDATE) - TRUNC(TO_DATE(checkin))) 
-		]]> 
-	</update>
 </mapper>
