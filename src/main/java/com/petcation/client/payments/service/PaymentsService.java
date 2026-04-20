@@ -104,7 +104,7 @@ public class PaymentsService {
 	        log.info("이미 결제 완료된 주문입니다: " +  orderId);
 	        return false; 
 	    }
-	    amount = 1L;
+
 	    Long originalAmount = (long)payment.getPrice();
 	    if (!originalAmount.equals(amount)) {
 	        log.error("ERROR: 금액 불일치! [주문번호: " + orderId + "] DB 저장 금액: " + originalAmount + ", 실제 결제 금액: " + amount);
