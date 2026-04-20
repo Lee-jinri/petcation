@@ -33,8 +33,6 @@ public interface MemberDao {
 	
 	public int memberListCnt(MemberVO mvo);
 
-	public int reservComplete();
-
 	public int reservListCnt(ReservVO rvo);
 	
 

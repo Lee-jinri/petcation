@@ -9,6 +9,6 @@ public interface PaymentsDAO {
     PaymentsVO getPayment(String orderId);
     void completePayment(@Param("payment_key") String paymentKey, @Param("method") String method, @Param("orderId") String orderId);
     void failPayment(String orderId);
-    void cancelPayment(String orderId);
+    void updatePaymentStatus(@Param("orderId") String orderId, @Param("status") String status);
     String getPaymentKey(String orderId);
 }

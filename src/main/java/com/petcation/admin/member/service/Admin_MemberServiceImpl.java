@@ -119,13 +119,4 @@ public class Admin_MemberServiceImpl implements MemberService {
 	public int reservListCnt(ReservVO rvo) {
 		return memberDao.reservListCnt(rvo);
 	}
-	
-
-	@Override
-	public int reservComplete() {
-		int reservComplete = memberDao.reservComplete();
-		return reservComplete;
-	}
-
-	
 }

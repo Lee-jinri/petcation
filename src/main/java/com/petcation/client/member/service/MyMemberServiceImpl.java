@@ -77,19 +77,6 @@ public class MyMemberServiceImpl implements MyMemberService{
 	}
 
 	@Override
-	public List<ReservVO> checkin(MemberVO mvo) {
-		List<ReservVO> checkin = null;
-		checkin = memberDao.checkin(mvo);
-		return checkin;
-	}
-
-	@Override
-	public int reservComplete() {
-		int reservComplete = memberDao.reservComplete();
-		return reservComplete;
-	}
-
-	@Override
 	public int memberDelete(MemberVO vo) {
 		int result = memberDao.memberDelete(vo);
 		return result;

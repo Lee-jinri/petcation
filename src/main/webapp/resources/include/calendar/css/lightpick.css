@@ -6,6 +6,7 @@
     background-color: #FFF;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     color: #000;
+    font-weight: 600;
     line-height: 1.125em;
 }
 
@@ -195,7 +196,7 @@
 
 .lightpick__day.is-previous-month,
 .lightpick__day.is-next-month {
-    opacity: 0.38;
+    opacity: 0.3;
 }
 
 .lightpick__day.lightpick__day.is-in-range:not(.is-disabled) {

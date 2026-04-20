@@ -101,9 +101,6 @@ public class AdminMemberController {
 		model.addAttribute("reservList", reservList); 
 		System.out.println(reservList);
 		
-		int reservComplete = adminMemberService.reservComplete();
-		System.out.println(reservComplete);
-		
 		int total = adminMemberService.reservListCnt(rvo);
 		model.addAttribute("pageMaker", new PageDTO(rvo, total));
 		

@@ -33,8 +33,6 @@ public interface MemberService {
 	
 	public int memberListCnt(MemberVO mvo);
 
-	public int reservComplete();
-
 	public int reservListCnt(ReservVO rvo);
 
 }

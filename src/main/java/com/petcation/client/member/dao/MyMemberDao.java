@@ -21,10 +21,6 @@ public interface MyMemberDao {
 	
 	public List<DiaryVO> diaryList (MemberVO mvo);
 
-	public List<ReservVO> checkin(MemberVO mvo);
-
-	public int reservComplete();
-
 	public int memberDelete(MemberVO vo);
 
 	public int reservListCnt(ReservVO rvo);
