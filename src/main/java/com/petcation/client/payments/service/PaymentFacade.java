@@ -2,98 +2,82 @@ package com.petcation.client.payments.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.petcation.client.hotel.service.User_HotelService;
+import com.petcation.client.payments.component.PaymentValidator;
+import com.petcation.client.payments.component.ValidationResult;
+import com.petcation.client.payments.infra.TossProvider;
+import com.petcation.client.payments.vo.PaymentsVO;
+import com.petcation.client.payments.vo.TossResponseDto;
+import com.petcation.client.payments.vo.WebhookDto;
+import com.petcation.client.reservation.component.ReservationManager;
 import com.petcation.client.reservation.service.ReservService;
 import com.petcation.client.reservation.vo.ReservVO;
 import com.petcation.common.exception.BadRequestException;
-import com.petcation.common.exception.ForbiddenException;
 import com.petcation.common.vo.ReservationRequestDTO;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j;
 
 @Service
-@Transactional
 @AllArgsConstructor
+@Log4j
 public class PaymentFacade {
     private final ReservService reservService;
     private final User_HotelService hotelService;
     private final PaymentsService paymentsService;
+    private final ReservationManager reservationManager;
+    private final PaymentValidator paymentValidator;
+    private final TossProvider tossProvider;
     
+    @Transactional
     public int createPayment(ReservationRequestDTO req) {
         LocalDateTime start = LocalDate.parse(req.getCheckin()).atStartOfDay();
         LocalDateTime end = LocalDate.parse(req.getCheckout()).atStartOfDay();
         
-        validateOrder(req, start, end);
-        int price = calculatePrice(req, start, end);
-        req.setPrice(price);
-        
-        paymentsService.createPayment(req.getOrderId(), price, req.getUserNo());
-        reservService.reservInsert(req);
-        
-        return price;
-    }
-    
-    private void validateOrder(ReservationRequestDTO req, LocalDateTime start, LocalDateTime end) {        
-        LocalDateTime now = LocalDateTime.now();
-        
-        if(start == null || end == null) {
-            throw new BadRequestException("예약 날짜를 모두 선택해주세요.");
-        }
-        if(!start.isBefore(end)) {
-            throw new BadRequestException("체크인 날짜는 체크아웃 날짜보다 빨라야 합니다.");
-        }
-        if(start.isBefore(now.toLocalDate().atStartOfDay())) {
-            throw new BadRequestException("이미 지난 날짜는 예약할 수 없습니다.");
-        }
-
-        int hotelNo = req.getHotelNo();
-        String hotelName = req.getHotelName();
-        
-        if(hotelNo <= 0 || hotelName == null || hotelName.isEmpty()) {
-            throw new BadRequestException("잘못된 숙소 정보입니다. 다시 시도해주세요.");
-        }
-        
-        String name = req.getReserv_name();
-        if (name == null || name.trim().isEmpty()) {
-            throw new BadRequestException("예약자명을 입력하세요.");
-        }
-        if (!name.matches("^[가-힣]{2,15}$")) {
-            throw new BadRequestException("올바른 예약자명을 입력하세요. (특수문자,영어,숫자 사용 불가 , 한글로 2자 이상 입력)");
-        }
-
-        String phone = req.getReserv_phone();
-        if (phone == null || !phone.matches("^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$")) {
-            throw new BadRequestException("전화번호를 다시 입력해주세요. 010-1234-5678 또는 02-1234-5678의 형태로 입력하세요.");
-        }
-
-        int people = req.getReserv_people();
-        String peopleStr = String.valueOf(people);
-        if (!peopleStr.matches("^(?:[1-9]|[1-9][0-9]|100)$")) {
-            throw new BadRequestException("예약 인원을 잘못 입력하셨습니다.");
-        }
-        
-        boolean isBooked = reservService.isBooked(hotelNo, start, end);
+        reservationManager.validateOrder(req, start, end);
+        boolean isBooked = reservService.isBooked(req.getHotelNo(), start, end);
         if(isBooked) {
             throw new BadRequestException("이미 예약된 날짜 입니다.");
         }
-    }
-    
-    public int calculatePrice(ReservationRequestDTO req, LocalDateTime start, LocalDateTime end) {
-        long nights = ChronoUnit.DAYS.between(start, end);
         int price = hotelService.getPriceByHotelNo(req.getHotelNo());
+        int totalPrice = reservationManager.calculatePrice(price, start, end);
+        req.setPrice(totalPrice);
         
-        int totalPrice = (int) nights * price;
+        paymentsService.createPayment(req.getOrderId(), totalPrice, req.getUserNo());
+        reservService.reservInsert(req);
         
         return totalPrice;
     }
 
-    public void completeReservation(String orderId) {
-        reservService.completeReservation(orderId);
+    public boolean confirmPayment(String paymentKey, String orderId, Long amount) {
+        PaymentsVO payment = paymentsService.getPayment(orderId);
+        ValidationResult result = paymentValidator.validate(payment, orderId, amount);
+        
+        switch (result) {
+            case VALID -> {
+                TossResponseDto response = tossProvider.confirm(paymentKey, orderId, amount);
+                if (response.isSuccess()) {
+                    // 성공 시 DB 업데이트
+                    processPaymentComplete(orderId, response.getPaymentKey(), response.getMethod());
+                    return true;
+                } else {
+                    // 실패 시 로그 남기고 환불 및 상태값 변경
+                    log.error("결제 실패: " + response.getErrorMessage());
+                    return cancelAndUpdateStatus(paymentKey, orderId);
+                }
+            }
+            case ALREADY_DONE -> { log.info("중복 webhook 무시: " + orderId); return true; }
+            case AMOUNT_MISMATCH, NOT_FOUND -> {
+                log.error("결제 검증 실패 [" + result.name() + "] - orderId: " + orderId);
+                processPaymentFail(orderId);
+                return false;
+            }
+        }
+        return false;
     }
 
     public ReservVO getReservationByOrderId(String orderId) {
@@ -101,33 +85,73 @@ public class PaymentFacade {
     }
 
     public void cancelPaymentAndReservation(String orderId, int userNo) {
-        validateCancellation(orderId, userNo); // 1. 취소 가능 여부 검증
-        paymentsService.cancel(orderId); // 2. 결제 취소 (토스 API)
-        reservService.updateReservStatus(orderId, "CANCELED"); // 3. 예약 상태 변경 (DB)
-    }
-
-    private void validateCancellation(String orderId, int userNo) {
         ReservVO r = reservService.getReservForCancel(orderId);
-
-        if (r.getUser_no() != userNo) {
-            throw new ForbiddenException("본인의 예약만 취소할 수 있습니다."); 
-        }
+        reservationManager.validateCancellation(r, orderId, userNo); // 1. 취소 가능 여부 검증
         
-        if(r.getReserv_status().equals("CANCELED")) {
-            throw new BadRequestException("이미 취소된 예약입니다.");
-        }
+        String paymentKey = paymentsService.getPaymentKey(orderId); 
+        TossResponseDto result = tossProvider.cancel(paymentKey, orderId); // 2. 결제 취소 (토스 API)
         
-        LocalDateTime checkInDateTime = LocalDate.parse(r.getCheckin()).atStartOfDay();
-        LocalDateTime deadline = checkInDateTime.minusDays(7);
-        LocalDateTime now = LocalDateTime.now();
-        
-        if (now.isAfter(deadline)) {
-            throw new BadRequestException("예약 취소는 체크인 날짜 7일 전까지만 가능합니다.");
+        if (result.isSuccess()) {
+            try {
+                processPaymentCancel(orderId);
+            } catch (Exception e) {
+                // 토스는 취소됐는데 DB 실패 → 수동 처리 필요
+                log.error("[긴급] 토스 취소 완료 / DB 업데이트 실패. 수동 확인 필요. orderId: " + orderId);
+                throw e;
+            }
+        } else {
+            throw new BadRequestException(result.getErrorMessage());
         }
     }
 
+    private boolean cancelAndUpdateStatus(String paymentKey, String orderId) {
+        TossResponseDto res = tossProvider.cancel(paymentKey, orderId);
+        if (res.isSuccess()) processPaymentCancel(orderId);
+        else processPaymentFail(orderId);
+        return false;
+    }
+    
+    public void processWebhook(WebhookDto.PaymentData data) {
+        PaymentsVO payment = paymentsService.getPayment(data.getOrderId());
+        ValidationResult result = paymentValidator.validate(payment, data.getOrderId(), data.getTotalAmount());
+        
+        switch (data.getStatus()) {
+            case "DONE" -> {
+                switch (result) {
+                    case VALID -> {
+                        processPaymentComplete(data.getOrderId(), data.getPaymentKey(), data.getMethod());
+                    }
+                    case ALREADY_DONE -> log.debug("중복 webhook 무시: " + data.getOrderId());
+                    case AMOUNT_MISMATCH, NOT_FOUND -> {
+                        processPaymentFail(data.getOrderId());
+                    }
+                }
+            }
+            case "CANCELED" -> {
+                if (!"CANCELED".equals(payment.getStatus())) {
+                    processPaymentCancel(data.getOrderId());
+                } else {
+                    log.debug("이미 취소 처리된 주문 webhook 무시: " + data.getOrderId());
+                }
+            }
+        }
+    }
+    
+    @Transactional
+    public void processPaymentComplete(String orderId, String paymentKey, String method) {
+        reservService.updateReservComplete(orderId);
+        paymentsService.updatePaymentComplete(orderId, paymentKey, method);
+    }
+
+    @Transactional
     public void processPaymentFail(String orderId) {
-        reservService.updateReservStatus(orderId, "FAILED");
-        paymentsService.updatePaymentStatus(orderId, "FAILED");
+        paymentsService.failPayment(orderId);
+        reservService.failReservation(orderId);
+    }
+    
+    @Transactional
+    public void processPaymentCancel(String orderId) {
+        paymentsService.cancelPayment(orderId);
+        reservService.cancelReservation(orderId);
     }
 }

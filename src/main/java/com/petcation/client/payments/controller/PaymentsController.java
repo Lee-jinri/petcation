@@ -1,6 +1,8 @@
 package com.petcation.client.payments.controller;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -20,7 +22,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.petcation.client.join.vo.MemberVO;
 import com.petcation.client.payments.service.PaymentFacade;
-import com.petcation.client.payments.service.PaymentsService;
 import com.petcation.client.payments.vo.WebhookDto;
 import com.petcation.client.reservation.vo.ReservVO;
 import com.petcation.common.exception.UnauthorizedException;
@@ -35,7 +36,6 @@ import lombok.extern.log4j.Log4j;
 @AllArgsConstructor
 public class PaymentsController {
 
-	private final PaymentsService paymentsService;
 	private final PaymentFacade paymentsFacade;
 	 
 	@PostMapping(value = "/create", produces = "application/json; charset=UTF-8")
@@ -47,7 +47,7 @@ public class PaymentsController {
 		if(userID == null) throw new UnauthorizedException("로그인이 필요한 서비스 입니다.");
 		
 		int userNo = userID.getUser_no();
-		String orderId = "order_" + System.currentTimeMillis();
+		String orderId = "order_" + UUID.randomUUID().toString().replace("-", "");
 		
 		req.setUserNo(userNo);
         req.setOrderId(orderId);
@@ -69,21 +69,21 @@ public class PaymentsController {
         RedirectAttributes redirectAttributes,
         Model model) {
 	    try {
-    	    boolean isConfirmed = paymentsService.confirmPayment(paymentKey, orderId, amount);
-    
-    	    if (isConfirmed) {
-    	        paymentsFacade.completeReservation(orderId);
-    	        ReservVO result = paymentsFacade.getReservationByOrderId(orderId);
-    	        model.addAttribute("result", result);
-    	        return "reserv/success";
-    	    }else {
-    	        paymentsFacade.processPaymentFail(orderId);
-    	        redirectAttributes.addFlashAttribute("errorMessage", "결제 정보 검증에 실패했습니다.");
-    	    }
+	        boolean isConfirmed = paymentsFacade.confirmPayment(paymentKey, orderId, amount);
+	        
+	        if (!isConfirmed) {
+	            redirectAttributes.addFlashAttribute("errorMessage", "결제에 실패했습니다. 다시 시도해 주세요.");
+	            return "redirect:/reserv/reservForm?hotel_no=" + hotelNo;
+	        }
+	        
+	        ReservVO result = paymentsFacade.getReservationByOrderId(orderId);
+	        model.addAttribute("result", result);
+	        
+	        return "reserv/success";
     	} catch (RuntimeException e) {
-            log.error("결제 실패 원인: " + e.getMessage());
-            paymentsFacade.processPaymentFail(orderId);
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+    	    String message = Objects.toString(e.getMessage(), "알 수 없는 오류가 발생했습니다");
+            log.error("결제 실패 원인: " + message);
+            redirectAttributes.addFlashAttribute("errorMessage", message);
         }
         return "redirect:/reserv/reservForm?hotel_no=" + hotelNo;
 	}
@@ -103,7 +103,9 @@ public class PaymentsController {
 	
 	@PostMapping("/webhook")
 	public ResponseEntity<Void> handleWebhook(@RequestBody WebhookDto payload) {
-	    paymentsService.processWebhook(payload.getData());
+
+        paymentsFacade.processWebhook(payload.getData());
+	    
 	    return ResponseEntity.ok().build();
 	}
 }

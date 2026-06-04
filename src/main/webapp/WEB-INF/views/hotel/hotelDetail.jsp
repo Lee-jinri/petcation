@@ -125,7 +125,8 @@
          <div class="contentContainer container">
             <div class="contentTit page-header"><h3 class="text-center">${detail.hotel_name}</h3></div>
                <div class="hotelThumb fadeshop">
-                  <span class="maxproduct"><img src="/petcationStorage/hotel/thumbnail/${detail.hotel_thumb}" alt="" style="object-fit:cover; width:650px; height:143px;"></span>
+               		<img src="/petcationStorage/hotel/${detail.hotel_file}" alt="" style="width: 75%; height: auto;">
+                  <span class="maxproduct"></span>
                </div>
                <div class="contentTB text-center">
                   <div class="fontchange">

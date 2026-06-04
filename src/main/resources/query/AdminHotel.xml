@@ -68,8 +68,8 @@
 		<selectKey keyProperty="hotel_no" resultType="int" order="BEFORE">
 			select hotel_seq.nextval from dual
 		</selectKey>
-		insert into hotel(hotel_no, hotel_name, hotel_info, hotel_address, hotel_tel, hotel_price, local_no, hotel_thumb)
-		values(#{hotel_no}, #{hotel_name}, to_clob(#{hotel_info}), #{hotel_address}, #{hotel_tel}, #{hotel_price}, #{local_no}, #{hotel_thumb})
+		insert into hotel(hotel_no, hotel_name, hotel_info, hotel_address, hotel_tel, hotel_price, local_no, hotel_thumb, hotel_file)
+		values(#{hotel_no}, #{hotel_name}, to_clob(#{hotel_info}), #{hotel_address}, #{hotel_tel}, #{hotel_price}, #{local_no}, #{hotel_thumb}, #{hotel_file})
 	</insert>
 	
 	<delete id="hotelDelete" parameterType="int" >

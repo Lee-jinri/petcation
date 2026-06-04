@@ -32,17 +32,17 @@
 		WHERE order_id = #{orderId}
 	</update>
 	
+	<update id="cancelPayment">
+		UPDATE payments
+		SET
+			status = 'CANCELED',
+			approved_at = CURRENT_TIMESTAMP
+		WHERE order_id = #{orderId} 
+	</update>
+	
 	<select id="getPaymentKey" resultType="String">
 		SELECT payment_key
 		FROM payments
 		WHERE order_id = #{orderId}
 	</select>
-
-	<update id="updatePaymentStatus">
-		UPDATE payments
-		SET
-			status = #{status},
-			approved_at = CURRENT_TIMESTAMP
-		WHERE order_id = #{orderId} 
-	</update>
 </mapper>

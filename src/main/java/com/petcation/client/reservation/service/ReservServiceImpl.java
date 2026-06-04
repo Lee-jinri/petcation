@@ -64,17 +64,22 @@ public class ReservServiceImpl implements ReservService {
     }
 
     @Override
-    public void completeReservation(String orderId) {
+    public void updateReservComplete(String orderId) {
         reservDao.completeReservation(orderId);
     }
-
-    @Override
-    public ReservVO getReservForCancel(String orderId) {
-        return reservDao.getReservForCancel(orderId);
-    }
-
+    
     @Override
     public void updateReservStatus(String orderId, String status) {
         reservDao.updateReservStatus(orderId, status);
+    }
+    
+    @Override
+    public void failReservation(String orderId) {
+        reservDao.failReservation(orderId);
+    }
+    
+    @Override
+    public ReservVO getReservForCancel(String orderId) {
+        return reservDao.getReservForCancel(orderId);
     }
 }

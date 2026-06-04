@@ -22,6 +22,7 @@ public interface ReservDao {
 	public List<ReservVO> reservDate(int hotel_no);
     public int isBooked(@Param("hotelNo") int hotelNo, @Param("checkin") LocalDateTime checkin, @Param("checkout") LocalDateTime checkout);
     public void completeReservation(String orderId);
+    public void failReservation(String orderId);
+    public void cancelReservation(String orderId);
     public ReservVO getReservForCancel(String orderId);
-    public void updateReservStatus(@Param("orderId") String orderId, @Param("status") String status);
 }

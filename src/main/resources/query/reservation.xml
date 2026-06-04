@@ -34,13 +34,6 @@
 			TO_DATE(#{checkin},'YYYY-MM-DD'), TO_DATE(#{checkout},'YYYY-MM-DD'), #{price}, #{orderId}, #{userNo}, #{hotelNo}, #{hotelName},#{reserv_etc}) 
 	</insert>
 	
-	<update id="completeReservation">
-		UPDATE reserv
-		SET reserv_status = 'DONE'
-		WHERE order_id = #{orderId}
-		AND reserv_status = 'READY'
-	</update>
-	
 	<select id="reservResult" parameterType="reserv" resultType="reserv">
 		SELECT 
 	        r.reserv_no, 
@@ -74,9 +67,22 @@
 		WHERE order_id = #{orderId}
 	</select>
 	
-	<update id="updateReservStatus">
+	<update id="completeReservation">
 		UPDATE reserv
-		SET reserv_status = #{status}
+		SET reserv_status = 'DONE'
+		WHERE order_id = #{orderId}
+		AND reserv_status = 'READY'
+	</update>
+	
+	<update id="failReservation">
+		UPDATE reserv
+		SET reserv_status = 'FAILED'
+		WHERE order_id = #{orderId}
+	</update>
+	
+	<update id="cancelReservation">
+		UPDATE reserv
+		SET reserv_status = 'CANCELED'
 		WHERE order_id = #{orderId}
 	</update>
 </mapper>
