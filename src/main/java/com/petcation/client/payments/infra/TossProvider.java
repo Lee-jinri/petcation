@@ -68,6 +68,8 @@ public class TossProvider {
             log.error("결제 승인 실패 [코드: " + errorCode + "] 메시지: " + errorMessage);
             return TossResponseDto.fail(errorCode, errorMessage);
         } catch (IOException | InterruptedException e) {
+            // 네트워크 유실로 응답 미수신 → 실제 출금 여부 불확실
+            // 조회 API(GET /v1/payments/{paymentKey})로 status 확인 후 DONE이면 환불, 아니면 실패 처리 (현재 단순 실패 처리)
             log.error("토스 API 호출 실패: "+ e.getMessage());
             return TossResponseDto.fail("NETWORK_ERROR", "결제 통신 중 오류가 발생했습니다.");
         }

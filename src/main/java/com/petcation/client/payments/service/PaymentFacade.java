@@ -65,9 +65,10 @@ public class PaymentFacade {
                     processPaymentComplete(orderId, response.getPaymentKey(), response.getMethod());
                     return true;
                 } else {
-                    // 실패 시 로그 남기고 환불 및 상태값 변경
+                    // 실패 시 로그 남기고 상태값 변경
                     log.error("결제 실패: " + response.getErrorMessage());
-                    return cancelAndUpdateStatus(paymentKey, orderId);
+                    processPaymentFail(orderId);
+                    return false;
                 }
             }
             case ALREADY_DONE -> { log.info("중복 webhook 무시: " + orderId); return true; }
