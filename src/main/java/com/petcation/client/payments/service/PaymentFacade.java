@@ -61,9 +61,15 @@ public class PaymentFacade {
             case VALID -> {
                 TossResponseDto response = tossProvider.confirm(paymentKey, orderId, amount);
                 if (response.isSuccess()) {
-                    // 성공 시 DB 업데이트
-                    processPaymentComplete(orderId, response.getPaymentKey(), response.getMethod());
-                    return true;
+                    try {
+                        // 성공 시 DB 업데이트
+                        processPaymentComplete(orderId, response.getPaymentKey(), response.getMethod());
+                        return true;
+                    } catch (Exception e) {
+                        // 토스는 결제됐는데 DB 실패 → 수동 처리 필요
+                        log.error("[긴급] 토스 결제 완료 / DB 업데이트 실패. 수동 확인 필요. orderId: " + orderId);
+                        throw e;
+                    }
                 } else {
                     // 실패 시 로그 남기고 상태값 변경
                     log.error("결제 실패: " + response.getErrorMessage());
@@ -105,13 +111,6 @@ public class PaymentFacade {
         }
     }
 
-    private boolean cancelAndUpdateStatus(String paymentKey, String orderId) {
-        TossResponseDto res = tossProvider.cancel(paymentKey, orderId);
-        if (res.isSuccess()) processPaymentCancel(orderId);
-        else processPaymentFail(orderId);
-        return false;
-    }
-    
     public void processWebhook(WebhookDto.PaymentData data) {
         PaymentsVO payment = paymentsService.getPayment(data.getOrderId());
         ValidationResult result = paymentValidator.validate(payment, data.getOrderId(), data.getTotalAmount());
