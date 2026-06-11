@@ -79,7 +79,7 @@ sequenceDiagram
     U->>T: 카드 인증
     T-->>C: success 리다이렉트 (paymentKey, orderId, amount)
     
-		C->>S: 결제 승인 요청 (paymentKey, orderId, amount)
+	C->>S: 결제 승인 요청 (paymentKey, orderId, amount)
     activate S
     S->>S: 금액 위변조 검증 및 중복결제 검증 (PaymentValidator.validate)
     S->>T: 결제 승인 API 호출
@@ -160,8 +160,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[결제 승인 API 호출] --> B{응답 받음?}
-    B -->|"non-200 (에러 응답)"| C[payments UPDATE: FAIL, <br> reserv UPDATE: FAILED]
-    B -->|200+DONE| D[payments UPDATE: DONE, <br> reserv UPDATE: DONE]
+    B -->|"non-200 (에러 응답)"| C[payments UPDATE: FAIL <br> reserv UPDATE: FAILED]
+    B -->|200+DONE| D[payments UPDATE: DONE <br> reserv UPDATE: DONE]
     B -->|"네트워크 유실 (응답 미수신)"| E[웹훅 수신]
     E --> F{웹훅 status}
     F -->|DONE| G[payments UPDATE: DONE, <br> reserv UPDATE: DONE]
@@ -193,7 +193,7 @@ flowchart TD
 - 사전 검증: 결제창 호출 전, 서버에서 숙소 가격을 재계산하여 DB에 READY 상태로 저장 후 고유 orderId 발급.
 - 사후 검증: 토스 승인 API 호출 직전, 실제 승인 요청 금액이 DB에 기록된 사전 검증 금액과 일치하는지 최종 확인.
 
-**성과:** 결제 데이터 무결성을 확보 및 결제 시스템의 신뢰도 향상.
+**성과:** 결제 데이터 무결성 확보 및 결제 시스템 신뢰도 향상.
 
 <br>
 
@@ -231,3 +231,4 @@ flowchart TD
 2. **UX:** 결제 중 네트워크 응답 유실 시 사용자 화면엔 실패로 표시되지만 웹훅으로 결제가 정상 처리될 수 있음. 이 경우 사용자가 결제·예약 성공 여부를 즉시 알 수 없는 문제가 있음. 
 → 결제 결과 폴링 또는 마이페이지 안내·알림으로 사용자에게 최종 상태를 전달하도록 보완 필요.
 3. **결제 상태 설계 보완**: 현재 상태값(READY/DONE/FAIL/CANCELED)으로는 ‘확정 실패’와 ‘결과 미확인’을 구분하기 어려움. PENDING/UNKNOWN 등 중간 상태를 추가하여 정합성의 정확도를 높일 수 있음.
+4. **동시성 제어 보완**: 현재는 결제 상태 확인 기반으로 순차적 중복 요청은 방지하나, 고동시성 상황에서는 확인~처리 사이에 경합이 발생할 여지가 있음. 짧은 락으로 처리 권한을 선점해 중간 상태로 갱신한 뒤 락을 해제하고, 외부 API 호출은 락 범위 밖에서 수행하며, 외부 API 응답으로 최종 중복 여부를 확인하는 방식으로 보완할 수 있음.
