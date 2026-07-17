@@ -13,3 +13,7 @@ bin/
 # 임시 파일 및 로그
 *.log
 *.tmp
+
+
+# 환경 설정 파일
+application.properties

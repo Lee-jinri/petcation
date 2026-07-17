@@ -7,9 +7,12 @@ import com.petcation.client.payments.vo.PaymentsVO;
 public interface PaymentsDAO {
     void createPayment(@Param("order_id") String orderId, @Param("price") int price, @Param("user_no") int userNo);
     PaymentsVO getPayment(String orderId);
-    void completePayment(@Param("payment_key") String paymentKey, @Param("method") String method, @Param("orderId") String orderId);
+    int completePayment(@Param("payment_key") String paymentKey, @Param("method") String method, @Param("orderId") String orderId);
     void updatePaymentStatus(@Param("orderId") String orderId, @Param("status") String status);
-    void cancelPayment(String orderId);
+    int cancelPayment(String orderId);
     void failPayment(String orderId);
     String getPaymentKey(String orderId);
+    int processingPayment(String orderId);
+    int CancelProcessingPayment(String orderId);
+    void revertCancelProcessing(String orderId);
 }
