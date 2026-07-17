@@ -41,13 +41,20 @@ public class TossProvider {
                 .build();
             
             HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            
+
             log.info("응답 상태 코드: " + response.statusCode());
             log.info("응답 바디: " + response.body());
             
+            JsonObject jsonObject;
+            try {
+                jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
+            } catch (Exception parseEx) {
+                log.error("결제 응답 파싱 실패: " + parseEx.getMessage());
+                return TossResponseDto.fail("PARSE_ERROR", "결제 응답을 처리할 수 없습니다.");
+            }
+            
             if (response.statusCode() == 200) {
-                String responseBody = response.body();
-                JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
+                
                 String status = jsonObject.get("status").getAsString();
                 if ("DONE".equals(status)) {
                     String method = jsonObject.get("method").getAsString();
@@ -58,12 +65,14 @@ public class TossProvider {
                         jsonObject.get("paymentKey").getAsString()
                     );
                 }
+                log.warn("결제 미완료 상태 [status: " + status + "] 주문번호: " + orderId);
+                return TossResponseDto.fail(status, "결제가 완료되지 않았습니다. status=" + status);
             }
             String responseBody = response.body();
             JsonObject errorObject = JsonParser.parseString(responseBody).getAsJsonObject();
             
-            String errorCode = errorObject.get("code").getAsString();
-            String errorMessage = errorObject.get("message").getAsString();
+            String errorCode = jsonObject.has("code") ? jsonObject.get("code").getAsString() : "CONFIRM_FAILED";
+            String errorMessage = jsonObject.has("message") ? jsonObject.get("message").getAsString() : "결제 승인 실패";
             
             log.error("결제 승인 실패 [코드: " + errorCode + "] 메시지: " + errorMessage);
             return TossResponseDto.fail(errorCode, errorMessage);
@@ -84,11 +93,19 @@ public class TossProvider {
                 .header("Content-Type", "application/json")
                 .method("POST", HttpRequest.BodyPublishers.ofString("{\"cancelReason\":\"구매자 변심\"}"))
                 .build();
-            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
             
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            JsonObject jsonObject;
+
             log.info("응답 상태 코드: " + response.statusCode());
             log.info("응답 바디: " + response.body());
+            
+            try {
+                jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
+            } catch (Exception parseEx) {
+                log.error("취소 응답 파싱 실패: " + parseEx.getMessage());
+                return TossResponseDto.fail("PARSE_ERROR", "취소 응답을 처리할 수 없습니다.");
+            }
             
             if (response.statusCode() == 200) {
                 String status = jsonObject.get("status").getAsString();
