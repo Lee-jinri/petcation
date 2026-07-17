@@ -21,6 +21,10 @@ public class PaymentValidator {
             log.info("이미 결제 완료된 주문입니다: " + orderId);
             return ValidationResult.ALREADY_DONE;
         }
+        if ("PROCESSING".equals(payment.getStatus())) {
+            log.info("처리 중인 주문입니다: " + orderId);
+            return ValidationResult.IN_PROGRESS;
+        }
         if (!((long) payment.getPrice() == amount)) {
             log.error("ERROR: 금액 불일치! [주문번호: " + orderId + "] DB 저장 금액: " + (long)payment.getPrice() + ", 실제 결제 금액: " + amount);
             return ValidationResult.AMOUNT_MISMATCH;

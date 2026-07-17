@@ -4,5 +4,6 @@ public enum ValidationResult {
     VALID,
     ALREADY_DONE,
     AMOUNT_MISMATCH,
-    NOT_FOUND
+    NOT_FOUND, 
+    IN_PROGRESS
 }
