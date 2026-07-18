@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.petcation.client.hotel.service.User_HotelService;
-import com.petcation.client.payments.component.PaymentValidator;
 import com.petcation.client.payments.component.ValidationResult;
 import com.petcation.client.payments.infra.TossProvider;
-import com.petcation.client.payments.vo.PaymentsVO;
 import com.petcation.client.payments.vo.TossResponseDto;
 import com.petcation.client.payments.vo.WebhookDto;
 import com.petcation.client.reservation.component.ReservationManager;
@@ -30,7 +28,6 @@ public class PaymentFacade {
     private final User_HotelService hotelService;
     private final PaymentsService paymentsService;
     private final ReservationManager reservationManager;
-    private final PaymentValidator paymentValidator;
     private final TossProvider tossProvider;
     
     @Transactional
@@ -54,8 +51,7 @@ public class PaymentFacade {
     }
 
     public boolean confirmPayment(String paymentKey, String orderId, Long amount) {
-        PaymentsVO payment = paymentsService.getPayment(orderId);
-        ValidationResult result = paymentValidator.validate(payment, orderId, amount);
+        ValidationResult result = paymentsService.claimForProcessing(orderId, amount);
         
         switch (result) {
             case VALID -> {
@@ -83,6 +79,7 @@ public class PaymentFacade {
                 processPaymentFail(orderId);
                 return false;
             }
+            case IN_PROGRESS -> log.info("이미 처리 중인 요청 무시: " + orderId);
         }
         return false;
     }
@@ -95,6 +92,11 @@ public class PaymentFacade {
         ReservVO r = reservService.getReservForCancel(orderId);
         reservationManager.validateCancellation(r, orderId, userNo); // 1. 취소 가능 여부 검증
         
+        boolean claimed = paymentsService.claimForCancel(orderId);
+        if (!claimed) {
+            throw new BadRequestException("이미 취소 처리 중이거나 취소된 결제입니다.");
+        }
+        
         String paymentKey = paymentsService.getPaymentKey(orderId); 
         TossResponseDto result = tossProvider.cancel(paymentKey, orderId); // 2. 결제 취소 (토스 API)
         
@@ -106,15 +108,20 @@ public class PaymentFacade {
                 log.error("[긴급] 토스 취소 완료 / DB 업데이트 실패. 수동 확인 필요. orderId: " + orderId);
                 throw e;
             }
+        } else if ("NETWORK_ERROR".equals(result.getErrorCode())) {
+            // 실제 취소 여부 불확실 - DONE으로 되돌릴 수 없음
+            log.error("[긴급] 토스 취소 응답 유실. 실제 취소 여부 확인 필요. orderId: " + orderId);
+            throw new BadRequestException("취소 처리 확인 중입니다. 잠시 후 다시 시도해주세요.");
         } else {
+            // 취소 실패 시 원래 상태(DONE)로 복구 
+            paymentsService.revertCancelProcessing(orderId);
             throw new BadRequestException(result.getErrorMessage());
         }
     }
 
     public void processWebhook(WebhookDto.PaymentData data) {
-        PaymentsVO payment = paymentsService.getPayment(data.getOrderId());
-        ValidationResult result = paymentValidator.validate(payment, data.getOrderId(), data.getTotalAmount());
-        
+
+        ValidationResult result = paymentsService.claimForProcessing(data.getOrderId(), data.getTotalAmount());        
         switch (data.getStatus()) {
             case "DONE" -> {
                 switch (result) {
@@ -125,10 +132,12 @@ public class PaymentFacade {
                     case AMOUNT_MISMATCH, NOT_FOUND -> {
                         processPaymentFail(data.getOrderId());
                     }
+                    case IN_PROGRESS -> log.info("이미 처리 중인 요청 무시: " + data.getOrderId());
                 }
             }
             case "CANCELED" -> {
-                if (!"CANCELED".equals(payment.getStatus())) {
+                boolean claimed = paymentsService.claimForCancel(data.getOrderId());
+                if (claimed) {
                     processPaymentCancel(data.getOrderId());
                 } else {
                     log.debug("이미 취소 처리된 주문 webhook 무시: " + data.getOrderId());

@@ -22,6 +22,7 @@
 			status= 'DONE', 
 			approved_at = CURRENT_TIMESTAMP
 		WHERE order_id = #{orderId}
+			AND status = 'PROCESSING'
 	</update>
 	
 	<update id="failPayment">
@@ -38,6 +39,7 @@
 			status = 'CANCELED',
 			approved_at = CURRENT_TIMESTAMP
 		WHERE order_id = #{orderId} 
+			AND status = 'CANCEL_PROCESSING'
 	</update>
 	
 	<select id="getPaymentKey" resultType="String">
@@ -45,4 +47,29 @@
 		FROM payments
 		WHERE order_id = #{orderId}
 	</select>
+	
+	<update id="processingPayment">
+		UPDATE payments
+		SET
+			status = 'PROCESSING',
+			approved_at = CURRENT_TIMESTAMP
+		WHERE order_id = #{orderId}
+			AND status = 'READY'
+	</update>
+	
+	<update id="CancelProcessingPayment">
+		UPDATE payments
+		SET
+			status = 'CANCEL_PROCESSING',
+			approved_at = CURRENT_TIMESTAMP
+		WHERE order_id = #{orderId}
+			AND status = 'DONE'
+	</update>
+	
+	<update id="revertCancelProcessing">
+	    UPDATE payments
+	    SET status = 'DONE'
+	    WHERE order_id = #{orderId}
+	      AND status = 'CANCEL_PROCESSING'
+	</update>
 </mapper>
