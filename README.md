@@ -56,41 +56,10 @@
 
 #### 전체 흐름
 
-```mermaid
-sequenceDiagram
-    actor U as 사용자
-    participant C as 클라이언트
-    participant S as 서버
-    participant DB as DB
-    participant T as 토스
 
-    U->>C: 결제 버튼 클릭
-    C->>C: 유효성 검사 (validateReservation)
-    C->>S: POST /payments/create
-    activate S
-    S->>S: 예약 정보 검증 (validateOrder)
-    S->>S: 가격 계산 (calculatePrice)
-    S->>DB: payments INSERT (READY)
-    S->>DB: reserv INSERT (READY)
-    S-->>C: orderId, price
-    deactivate S
+<img src="docs/images/payment_cancel_sequence.svg" width="80%">
 
-    C->>T: 토스 결제창 호출
-    U->>T: 카드 인증
-    T-->>C: success 리다이렉트 (paymentKey, orderId, amount)
-    
-	C->>S: 결제 승인 요청 (paymentKey, orderId, amount)
-    activate S
-	S->>DB: SELECT FOR UPDATE (현재 상태 조회)
-	S->>S: 금액 위변조 검증 및 중복결제 검증 (PaymentValidator.validate)
-	S->>DB: 상태 선점 (READY → PROCESSING)
-    S->>T: 결제 승인 API 호출
-    T-->>S: 승인 완료
-    S->>DB: payments UPDATE (DONE)
-    S->>DB: reserv UPDATE (DONE)
-    S-->>C: success 페이지
-    deactivate S
-```
+
 
 **1. 결제 버튼 클릭**
 
@@ -124,21 +93,8 @@ sequenceDiagram
 
 ### 취소 프로세스
 
-```mermaid
-flowchart TD
-    A[예약 취소 버튼 클릭] --> B{체크인 7일 전?}
-    B -->|아니오| X[취소 불가 안내]
-    B -->|예| C["PATCH /payments/{orderId}/cancel"]
-    C --> D{validateCancellation}
-    D --> E{본인 예약?}
-    E -->|아니오| X
-    E -->|예| F{체크인 7일 전?}
-    F -->|아니오| X
-    F -->|예| G{취소 가능한 상태인가?}
-    G -->|아니오| X
-    G -->|예| H[토스 결제 취소 API 호출]
-    H --> I[payments UPDATE: CANCELED<br>reserv UPDATE: CANCELED]
-```
+<img src="docs/images/cancel_flowChart.svg" width="50%">
+
 
 **1. 예약 취소 버튼 클릭**
 
@@ -161,16 +117,9 @@ flowchart TD
 
 ### 토스 API 흐름
 
-```mermaid
-flowchart TD
-    A[결제 승인 API 호출] --> B{응답 받음?}
-    B -->|"non-200 (에러 응답)"| C[payments UPDATE: FAIL <br> reserv UPDATE: FAILED]
-    B -->|200+DONE| D[payments UPDATE: DONE <br> reserv UPDATE: DONE]
-    B -->|"네트워크 유실 (응답 미수신)"| E[웹훅 수신]
-    E --> F{웹훅 status}
-    F -->|DONE| G[payments UPDATE: DONE, <br> reserv UPDATE: DONE]
-    F -->|미승인| H[돈 미출금<br>환불 X<br>DB: FAIL]
-```
+
+<img src="docs/images/tossAPI_flowChart.svg" width="70%">
+
 
 **결제 승인 결과 처리**
 
